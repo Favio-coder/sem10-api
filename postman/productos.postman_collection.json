@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Semana 10 - API de productos (Richard Favio Asturimac Medina)",
-    "description": "Ejecutar tras completar manualmente controladores y rutas. La última petición 500 requiere detener MySQL temporalmente y restaurarlo enseguida.",
+    "description": "CRUD implementado por el asistente a petición del estudiante; la regla de 70 % manual de la guía no se cumple. La última petición 500 requiere detener MySQL temporalmente y restaurarlo enseguida.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

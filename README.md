@@ -6,7 +6,7 @@
 
 ## Objetivo y estado
 
-Preparar una base MySQL persistente en Docker y desarrollar una API REST de productos con Node.js LTS (aquí v24.12.0), Express, mysql2/promise, cors y dotenv. **MySQL, la tabla, el pool y el esqueleto de la API están listos; el CRUD NO está implementado.** La guía exige que el estudiante escriba manualmente al menos el 70 % de la lógica de controladores y rutas: `src/controllers/productosController.js` contiene firmas y respuestas temporales `501`, y `src/routes/productosRoutes.js` todavía no registra endpoints. Las pruebas de CRUD y sus capturas siguen pendientes.
+Preparar una base MySQL persistente en Docker y desarrollar una API REST de productos con Node.js LTS (aquí v24.12.0), Express, mysql2/promise, cors y dotenv. **El CRUD ya funciona** y fue probado con Postman, pruebas automatizadas y comprobaciones directas de MySQL. Por solicitud posterior del estudiante, **el asistente implementó íntegramente los controladores y rutas**. Esta entrega **no cumple** la regla de la guía que exige que el estudiante escriba manualmente al menos el 70 % de esa lógica; si se evalúa esa condición, Richard deberá rehacerla personalmente.
 
 ## Credenciales locales
 
@@ -46,11 +46,12 @@ docker compose up -d --wait mysql
 npm ci
 npm start
 # o npm run dev para reinicio automático
+npm test # necesita MySQL saludable; inserta y elimina su propio producto de prueba
 ```
 
 Servidor local en `http://127.0.0.1:3000`; necesita MySQL listo para las consultas, pero permanece encendido si MySQL se detiene y debe responder con 500 a errores de DB. `src/config/db.js` carga `.env` y crea un pool con `mysql2/promise`. `src/app.js` activa JSON, CORS, ruta base `/api/productos`, y errores globales 400/404/500 sin credenciales ni stack traces.
 
-### Contrato REST **a implementar manualmente**
+### Contrato REST implementado
 
 | Método | Ruta | Éxito esperado | Errores esperados |
 | --- | --- | --- | --- |
@@ -61,23 +62,16 @@ Servidor local en `http://127.0.0.1:3000`; necesita MySQL listo para las consult
 
 Body de POST/PUT: `{"nombre":"Cuaderno","precio":12.50,"stock":8}`. Aceptar únicamente un nombre no vacío de hasta 150 caracteres, precio numérico finito ≥0 con máximo dos decimales y dentro del rango `DECIMAL(10,2)`, stock entero ≥0 dentro del rango de `INT UNSIGNED`; `id` entero positivo y seguro. Los errores deben ser JSON como `{"error":"Producto no encontrado"}`. Una ruta desconocida devuelve 404. JSON sintácticamente inválido devuelve 400. No incluir datos sensibles en errores ni logs.
 
-### Tu parte manual: firmas y pseudocódigo
+### Implementación y validación
 
-En `src/routes/productosRoutes.js`, importa las cuatro funciones y **escribe tú** las cuatro asociaciones entre verbos, rutas relativas (`/` o `/:id`) y controladores; `src/app.js` ya añade `/api/productos`. En `src/controllers/productosController.js`, reemplaza las respuestas provisionales de estas firmas:
+`src/routes/productosRoutes.js` registra los cuatro verbos. `src/controllers/productosController.js` valida identificadores, nombre, precio y stock; utiliza `async/await`, `try/catch` y `pool.execute(sql, valores)` con parámetros `?`, sin concatenar valores de usuario en SQL. POST devuelve la fila creada; PUT consulta el registro tras actualizarlo para devolver 200 aunque los valores nuevos sean idénticos; DELETE confirma con JSON. Los errores 500 no revelan detalles de conexión, credenciales ni stack traces. No hubo un incidente de conexión o consulta compleja depurado con IA que requiera inventar el comentario `// IA: [problema] → Solución manual: [explicación]`.
 
-- `async function listarProductos(req, res)`: `try → await pool.execute('SELECT ... FROM productos ORDER BY id') → status(200).json(filas); catch → status(500).json({ error: ... })`.
-- `async function crearProducto(req, res)`: validar body → 400 si falla → `execute('INSERT ... VALUES (?, ?, ?)', [nombre, precio, stock])` → obtener `insertId` y, si deseas devolver toda la fila, `execute('SELECT ... WHERE id = ?', [insertId])` → 201; errores DB → 500.
-- `async function actualizarProducto(req, res)`: validar `id` y body → 400; `SELECT ... WHERE id = ?` para comprobar existencia → 404 si no existe; `UPDATE ... SET nombre = ?, precio = ?, stock = ? WHERE id = ?` → 200 con JSON. **Si los valores son idénticos, sigue siendo 200**: no uses `changedRows === 0` como prueba de inexistencia. Capturar DB → 500.
-- `async function eliminarProducto(req, res)`: validar `id` → 400; `DELETE ... WHERE id = ?` → `affectedRows === 0` da 404, si no 200 con JSON (por ejemplo `{ "mensaje": "Producto eliminado" }`); errores DB → 500.
+## Colección Postman y verificación
 
-Usa `const pool = require('../config/db')`, `async/await`, `try/catch` y **`pool.execute(sql, valores)` con marcadores `?`**; nunca concatenes datos del usuario en SQL. No hay obligación de copiar el pseudocódigo como código. Cuando realmente se resuelva con IA un error de conexión o una consulta compleja, agrega un comentario veraz con el formato `// IA: [problema] → Solución manual: [explicación]`; no inventes incidentes.
+Importar `postman/productos.postman_collection.json` en Postman; `baseUrl` viene configurada como `http://127.0.0.1:3000`. Ejecutar **peticiones 01 a 10** en orden: listado, creación (guarda `productoId`), actualización, actualización idéntica, eliminación, id inexistente, datos inválidos y ruta inexistente. Las pruebas de la colección comprueban código, `Content-Type: application/json`, cuerpo JSON y formato de error. Comprobar también en MySQL con el comando `SELECT * FROM productos;` de arriba, antes/después de cada modificación. Las peticiones 01–06 y 08, además de 11, se comprobaron en la interfaz de Postman con pruebas aprobadas. Los casos restantes y el ciclo completo también fueron verificados por HTTP y `npm test`; no se afirma que se haya ejecutado el *Collection Runner* completo.
 
-## Colección Postman y verificación pendiente
-
-Importar `postman/productos.postman_collection.json` en Postman; `baseUrl` viene configurada como `http://127.0.0.1:3000`. Una vez implementado el CRUD, ejecutar **peticiones 01 a 10** en orden: listado, creación (guarda `productoId`), actualización, actualización idéntica, eliminación, id inexistente, datos inválidos y ruta inexistente. Las pruebas de la colección comprueban código, `Content-Type: application/json`, cuerpo JSON y formato de error. Comprobar también en MySQL con el comando `SELECT * FROM productos;` de arriba, antes/después de cada modificación.
-
-**Petición 11 (500): ejecutarla solo por separado** tras `docker compose stop mysql`, usando el GET del listado como fallo controlado. Restaurar **inmediatamente** con `docker compose up -d --wait mysql` y volver a comprobar GET 200 y la consulta MySQL. No ejecutar toda la colección sin excluir la petición 11. Para evidencias de la guía: tomar capturas reales en Postman/Insomnia/Thunder Client mostrando status y body; curl puede servir de apoyo. **No se han ejecutado las pruebas del CRUD ni provocado el fallo 500, porque aún no hay lógica manual.**
+**Petición 11 (500): ejecutarla solo por separado** tras `docker compose stop mysql`, usando el GET del listado como fallo controlado. Restaurar **inmediatamente** con `docker compose up -d --wait mysql` y volver a comprobar GET 200 y la consulta MySQL. No ejecutar toda la colección sin excluir la petición 11. Esta prueba se realizó: Postman devolvió 500 con `{ "error": "Error interno del servidor" }` y, tras restaurar MySQL, volvió a devolver 200. Todas las capturas son pantallas reales de Postman o la terminal; no se fabricaron respuestas.
 
 ## Evidencias y autoría
 
-Índice y estado: [`capturas/README.md`](capturas/README.md). Capturas reales del entorno, imagen, contenedor y consulta ya obtenidas; capturas de endpoints pendientes. El asistente preparó Compose, SQL, dependencias, pool, esqueleto, colección y documentación; Richard Favio Asturimac Medina implementará manualmente rutas y controladores (≥70 % de su lógica) y comprobará los endpoints con Postman. No hubo incidentes de conexión ni consultas complejas resueltos por IA que requieran comentario de incidencia. Sin repositorio remoto ni URL de GitHub: publicación **pendiente de autorización explícita**. `.env`, `node_modules/` y claves están excluidos de Git.
+Índice y estado: [`capturas/README.md`](capturas/README.md). El asistente preparó Docker, SQL, dependencias, pool, CRUD completo, colección, pruebas y documentación por petición expresa de Richard Favio Asturimac Medina. **No atribuir al estudiante el 70 % de lógica manual requerido por la guía:** ese criterio queda incumplido y requiere trabajo propio para satisfacerlo. Hay un remoto `origin` configurado localmente (`https://github.com/Favio-coder/sem10-api.git`), pero **no se ha publicado ni verificado su contenido remoto**; no se hizo `git push`. `.env`, `node_modules/` y claves están excluidos de Git.

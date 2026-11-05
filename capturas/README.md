@@ -1,6 +1,6 @@
 # Evidencias de Semana 10 — Richard Favio Asturimac Medina
 
-Las imágenes presentes son capturas reales de pantalla, obtenidas al comprobar cada avance. No hay capturas simuladas. No aparecen contraseñas. Las capturas de código provisional **no demuestran que el CRUD funcione**.
+Las imágenes presentes son capturas reales de pantalla, obtenidas al comprobar cada avance. No hay capturas simuladas ni contraseñas visibles. El asistente implementó el CRUD por solicitud posterior del estudiante; por tanto, estas capturas **no acreditan el 70 % de trabajo manual exigido por la guía**.
 
 | Archivo | Qué demuestra | Estado |
 | --- | --- | --- |
@@ -11,15 +11,16 @@ Las imágenes presentes son capturas reales de pantalla, obtenidas al comprobar 
 | `05_estructura_proyecto.png` | Archivos de proyecto sin mostrar `.env` | Obtenida |
 | `06_tabla_productos.png` | Tabla creada, columnas y conteo de registros | Obtenida |
 | `07_configuracion_pool.png` | Código de pool sin credenciales | Obtenida |
-| `08_controlador.png` | Esqueleto provisional; reemplazar con captura final tras implementación manual | Pendiente |
-| `09_rutas.png` | Esqueleto provisional; reemplazar con captura final tras implementación manual | Pendiente |
-| `10_get_200.png` | GET 200 en Postman/Insomnia/Thunder Client | Pendiente |
-| `11_post_201.png` | POST 201 y JSON | Pendiente |
-| `12_put_200.png` | PUT 200 y JSON | Pendiente |
-| `13_delete_200.png` | DELETE 200 y JSON | Pendiente |
-| `14_error_400.png` | Datos inválidos: 400 y `{error}` | Pendiente |
-| `15_error_404.png` | Producto inexistente: 404 y `{error}` | Pendiente |
-| `16_error_500.png` | MySQL detenido: 500 sin datos sensibles; restaurarlo enseguida | Pendiente |
-| `17_verificacion_final.png` | MySQL recuperado, GET 200, datos comprobados | Pendiente |
+| `08_controlador.png` | Código real de POST/PUT y manejo de errores | Obtenida |
+| `09_rutas.png` | Registro real de GET/POST/PUT/DELETE | Obtenida |
+| `10_get_200.png` | GET 200 en Postman | Obtenida |
+| `11_post_201.png` | POST 201 y JSON en Postman; id creado en MySQL | Obtenida |
+| `12_put_200.png` | PUT 200 en Postman y valores actualizados en MySQL | Obtenida |
+| `13_delete_200.png` | DELETE 200 en Postman, ausencia verificada en MySQL | Obtenida |
+| `14_error_400.png` | Datos inválidos: 400 y `{error}` en Postman | Obtenida |
+| `15_error_404.png` | Producto inexistente: 404 y `{error}` en Postman | Obtenida |
+| `16_error_500.png` | MySQL detenido: 500 sin datos sensibles en Postman | Obtenida |
+| `17_verificacion_final.png` | MySQL restaurado y saludable, GET 200 y tabla consultada | Obtenida |
+| `18_get_recuperado_postman.png` | GET 200 en Postman después de restaurar MySQL | Obtenida |
 
-Para completar las pendientes: implementa manualmente controladores y rutas, ejecuta la colección de Postman (peticiones 01 a 10), captura cada resultado **en el momento en que ocurra** con código y body legibles, prueba por separado la 500 y restaura MySQL antes de la verificación final. No reutilizar ni crear imágenes artificiales de resultados.
+El *Collection Runner* completo no fue ejecutado: las peticiones principales y el fallo 500 se probaron individualmente en Postman. La integración y otros casos se comprobaron con `npm test` y peticiones HTTP. Hay un remoto `origin` configurado localmente, pero no se ha publicado con `git push`; si la evaluación lo exige, habrá que rehacer la lógica manualmente para cumplir el criterio del 70 %.

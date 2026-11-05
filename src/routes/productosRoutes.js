@@ -1,9 +1,16 @@
 const { Router } = require('express');
+const {
+  listarProductos,
+  crearProducto,
+  actualizarProducto,
+  eliminarProducto,
+} = require('../controllers/productosController');
 
 const router = Router();
 
-// EJERCICIO MANUAL: importa las cuatro funciones de productosController.js.
-// TODO: registra GET /, POST /, PUT /:id y DELETE /:id en este router.
-// No incluyas /api/productos aquí: src/app.js ya monta esa ruta base.
+router.get('/', listarProductos);
+router.post('/', crearProducto);
+router.put('/:id', actualizarProducto);
+router.delete('/:id', eliminarProducto);
 
 module.exports = router;
