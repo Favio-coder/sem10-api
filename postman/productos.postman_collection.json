@@ -1,0 +1,73 @@
+{
+  "info": {
+    "name": "Semana 10 - API de productos (Richard Favio Asturimac Medina)",
+    "description": "Ejecutar tras completar manualmente controladores y rutas. La última petición 500 requiere detener MySQL temporalmente y restaurarlo enseguida.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:3000" },
+    { "key": "productoId", "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const expected = Number(pm.request.headers.get('X-Expected-Status'));",
+          "pm.test('Código HTTP esperado: ' + expected, () => pm.response.to.have.status(expected));",
+          "pm.test('Content-Type JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.match(/application\\/json/i));",
+          "pm.test('Cuerpo JSON válido', () => pm.expect(() => pm.response.json()).not.to.throw());",
+          "if (expected >= 400) pm.test('Error con formato {error}', () => pm.expect(pm.response.json().error).to.be.a('string'));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Listar productos (200)",
+      "request": { "method": "GET", "header": [{ "key": "X-Expected-Status", "value": "200" }], "url": "{{baseUrl}}/api/productos", "description": "Lista todos los productos, incluso si está vacío." }
+    },
+    {
+      "name": "02 Crear producto (201)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 201) {", "  const body = pm.response.json();", "  pm.test('Devuelve id', () => pm.expect(body.id).to.be.a('number'));", "  pm.collectionVariables.set('productoId', body.id);", "}"] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Expected-Status", "value": "201" }], "body": { "mode": "raw", "raw": "{\"nombre\":\"Cuaderno\",\"precio\":12.50,\"stock\":8}" }, "url": "{{baseUrl}}/api/productos", "description": "Crea un producto y guarda su id en productoId." }
+    },
+    {
+      "name": "03 Actualizar producto (200)",
+      "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Expected-Status", "value": "200" }], "body": { "mode": "raw", "raw": "{\"nombre\":\"Cuaderno actualizado\",\"precio\":13.75,\"stock\":6}" }, "url": "{{baseUrl}}/api/productos/{{productoId}}", "description": "Actualiza el producto creado; verifica los nuevos valores en MySQL." }
+    },
+    {
+      "name": "04 Actualizar con los mismos valores (200)",
+      "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Expected-Status", "value": "200" }], "body": { "mode": "raw", "raw": "{\"nombre\":\"Cuaderno actualizado\",\"precio\":13.75,\"stock\":6}" }, "url": "{{baseUrl}}/api/productos/{{productoId}}", "description": "No confundir ausencia de cambios con recurso inexistente." }
+    },
+    {
+      "name": "05 Eliminar producto (200)",
+      "request": { "method": "DELETE", "header": [{ "key": "X-Expected-Status", "value": "200" }], "url": "{{baseUrl}}/api/productos/{{productoId}}", "description": "Elimina el registro y devuelve JSON." }
+    },
+    {
+      "name": "06 Eliminar inexistente (404)",
+      "request": { "method": "DELETE", "header": [{ "key": "X-Expected-Status", "value": "404" }], "url": "{{baseUrl}}/api/productos/{{productoId}}", "description": "Repetir eliminación prueba el caso de id inexistente." }
+    },
+    {
+      "name": "07 Actualizar inexistente (404)",
+      "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Expected-Status", "value": "404" }], "body": { "mode": "raw", "raw": "{\"nombre\":\"No existe\",\"precio\":1.00,\"stock\":0}" }, "url": "{{baseUrl}}/api/productos/{{productoId}}", "description": "Verificar la ausencia del producto tras eliminarlo." }
+    },
+    {
+      "name": "08 Crear inválido (400)",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Expected-Status", "value": "400" }], "body": { "mode": "raw", "raw": "{\"nombre\":\"  \",\"precio\":-1,\"stock\":-3}" }, "url": "{{baseUrl}}/api/productos", "description": "Nombre vacío, precio y stock negativos." }
+    },
+    {
+      "name": "09 Identificador inválido (400)",
+      "request": { "method": "DELETE", "header": [{ "key": "X-Expected-Status", "value": "400" }], "url": "{{baseUrl}}/api/productos/no-es-id", "description": "Validación del parámetro id." }
+    },
+    {
+      "name": "10 Ruta inexistente (404)",
+      "request": { "method": "GET", "header": [{ "key": "X-Expected-Status", "value": "404" }], "url": "{{baseUrl}}/ruta-inexistente", "description": "Middleware global de ruta desconocida." }
+    },
+    {
+      "name": "11 Error de conexión controlado (500) - ejecutar por separado",
+      "request": { "method": "GET", "header": [{ "key": "X-Expected-Status", "value": "500" }], "url": "{{baseUrl}}/api/productos", "description": "Solo ejecutar tras docker compose stop mysql; restaurar inmediatamente con docker compose up -d --wait mysql, comprobar GET 200. NO incluir al ejecutar toda la colección." }
+    }
+  ]
+}

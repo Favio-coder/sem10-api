@@ -1,0 +1,24 @@
+name: sem10
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Configura MYSQL_ROOT_PASSWORD en .env}
+      MYSQL_DATABASE: db_lab10
+      MYSQL_USER: lab10_app
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Configura DB_PASSWORD en .env}
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping --host=127.0.0.1 --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+volumes:
+  mysql_data:
